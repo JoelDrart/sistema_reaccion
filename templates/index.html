@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reacción - 7264</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-image: url('https://i.pinimg.com/originals/39/54/7b/39547b886e2c518abe91199ce75d1bd7.jpg');
+            background-size: cover;
+            background-attachment: fixed; 
+            background-position: center; 
+        }
+    </style>
+    
+</head>
+<body class="bg-slate-400 p-6">
+
+    <div class="flex justify-between mx-auto p-6">
+
+        <div class="flex flex-col text-center text-green-500">
+            <div>
+
+                <h1 class="text-4xl font-bold ">SISTEMA DE REACCIÓN</h1>
+                <h2 class="text-xl mb-4">Una base de conocimiento inspirada en videojuegos</h2>
+            </div>
+            <div>
+                <h2 class="text-xl mb-4">Erick Malán - 7264</h2>
+            </div>
+        </div>
+        
+        <div id="contenedor-preguntas" class="space-y-4">
+            <!-- Preguntas dinámicas o respuestas finales se añadirán aquí -->
+        </div>
+    </div>
+
+    <script>
+        let flujoFinalizado = false;
+
+        // Función para cargar preguntas dinámicamente
+        async function cargarPregunta(id = 'inicio') {
+            if (flujoFinalizado) return; 
+
+            const contenedor = document.getElementById('contenedor-preguntas');
+
+            console.log('Cargando pregunta:', id);
+            // Realiza una solicitud al servidor para obtener la pregunta o respuesta final
+            const respuesta = await fetch(`/pregunta/${id}`);
+            const data = await respuesta.json();
+
+            console.log('Respuesta:', data);
+
+            // Crear un contenedor para la nueva pregunta o respuesta final
+            const nuevoContenedor = document.createElement('div');
+
+            if (data.respuesta_final) {
+                nuevoContenedor.classList.add('bg-green-500', 'p-4', 'rounded-lg', 'shadow-lg');
+                // Mostrar la respuesta final
+                const respuestaFinal = document.createElement('p');
+                respuestaFinal.classList.add('text-lg', 'font-semibold', 'text-white');
+                respuestaFinal.textContent = `${data.respuesta_final}`;
+                nuevoContenedor.appendChild(respuestaFinal);
+
+                // Agregar opciones para reiniciar o finalizar
+                const reiniciarContenedor = document.createElement('div');
+                reiniciarContenedor.classList.add('mt-4');
+                const textoReiniciar = document.createElement('p');
+                textoReiniciar.classList.add('text-md', 'font-semibold');
+                textoReiniciar.textContent = "¿Quieres hacer otra pregunta?";
+                reiniciarContenedor.appendChild(textoReiniciar);
+
+                const botonSi = document.createElement('button');
+                botonSi.classList.add('bg-blue-500', 'text-white', 'px-4', 'py-2', 'rounded', 'mt-2', 'mr-2');
+                botonSi.textContent = "Sí";
+                botonSi.addEventListener('click', () => {
+                    cargarPregunta('inicio');
+                });
+
+                const botonNo = document.createElement('button');
+                botonNo.classList.add('bg-red-500', 'text-white', 'px-4', 'py-2', 'rounded', 'mt-2');
+                botonNo.textContent = "No";
+                botonNo.addEventListener('click', () => {
+                    flujoFinalizado = true;
+                            
+                    // Deshabilitar todos los botones existentes
+                    const botones = document.querySelectorAll('button');
+                    botones.forEach((boton) => {
+                        boton.disabled = true;
+                    });
+
+                    // Mostrar mensaje de agradecimiento
+                    const contenedor = document.getElementById('contenedor-preguntas');
+                    const mensajeFinal = document.createElement('div');
+                    mensajeFinal.classList.add('bg-gray-700', 'text-white', 'p-4', 'rounded', 'shadow', 'mt-4');
+                    mensajeFinal.textContent = "Gracias por usar el sistema de reacción. ¡Hasta pronto!";
+                    contenedor.appendChild(mensajeFinal);
+                });
+
+                reiniciarContenedor.appendChild(botonSi);
+                reiniciarContenedor.appendChild(botonNo);
+                nuevoContenedor.appendChild(reiniciarContenedor);
+            } else {
+                nuevoContenedor.classList.add('bg-white', 'p-4', 'rounded', 'shadow-lg');
+                // Mostrar la pregunta y las respuestas
+                const pregunta = document.createElement('h3');
+                pregunta.classList.add('text-xl', 'font-semibold');
+                pregunta.textContent = data.pregunta;
+                nuevoContenedor.appendChild(pregunta);
+
+                // Crear las opciones de respuesta
+                Object.entries(data.respuestas).forEach(([clave, opcion]) => {
+                    const boton = document.createElement('button');
+                    boton.classList.add('bg-green-500', 'text-white', 'px-4', 'py-2', 'rounded', 'mt-2', 'mr-2', 'hover:bg-purple-700', 'transition-colors', 'duration-300', 'ease-in-out', 'disabled:opacity-50');
+                    boton.textContent = opcion.nombreOpcion;
+                    boton.addEventListener('click', () => {
+                        cargarPregunta(opcion.flujoSiguiente);
+                        boton.classList.add('bg-purple-700');
+                    });
+                    nuevoContenedor.appendChild(boton);
+                });
+            }
+
+            contenedor.appendChild(nuevoContenedor);
+        }
+
+        // Iniciar el flujo con la pregunta inicial
+        cargarPregunta('inicio');
+    </script>
+
+</body>
+</html>
